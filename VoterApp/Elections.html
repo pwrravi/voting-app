@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Author Dipali Ravi Pawar</title>
+  <audio id="voteSound" src="Images/beep.WAV" preload="auto"></audio>
+
+  <script src="Images/chart.js"></script>
+  <style>
+    body { font-family: Arial; padding: 0px; background: #f4f4f4; }
+    h1, h2{ text-align: center; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 10px;
+    }
+    .card {
+      background: white;
+      border-radius: 8px;
+      padding: 5px;
+      text-align: center;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    .card img {
+      width: 100%;
+      height: 120px;
+      object-fit: cover;
+      border-radius: 6px;
+    }
+    .card button {
+      background: #007bff;
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .card button:disabled {
+      background: gray;
+      cursor: not-allowed;
+    }
+    .thank-you, #voterCountDisplay {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 18px;
+      color: green;
+    }
+    .reset-container, .polling-container, .button-container, .admin-container  { text-align: center; margin-top: 30px; }
+    .polling-container button, .reset-container button, .button-container button, .admin-container button{ padding: 8px 16px; font-size: 16px; margin: 5px; }
+    #pollingResults, #partyChart { display: none; margin: 30px auto; max-width: 500px; }
+    .polling-flex {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 30px;
+      margin-top: 30px;
+      flex-wrap: wrap;
+    }
+      #partyChart {
+      flex: 0 0 400px;
+      display: none;
+    }
+   .button-container {display:none;}
+   .author{ float: right; color: gray; }
+   #admin{float:left}
+  </style>
+</head>
+<body>
+
+<h1>Student Elections 2025 : Pimple Nilakh Boys and Girls- 52 </h1>
+
+<h2>Vote for Your Candidate</h2>
+
+<div class="grid" id="candidateGrid"></div>
+<div class="thank-you" id="thankYouMsg"></div>
+<div id="voterCountDisplay"></div>
+<div class="admin-container">
+<button id="admin" onclick="showButtons()">Admin Login</button>
+<p class="author">CreatedBy : Dipali Ravi Pawar</p>
+<div id="buttons" class="button-container">
+<div class="reset-container">
+  <button onclick="resetUser()">🔄 Reset for Next User</button>
+  <button onclick="resetAllVotes()">🗑️ Reset All Votes</button>
+  <button onclick="showPolling()">📊 Show Polling</button>
+  <button onclick="exportToExcel()">📤 Export Polling Result to Excel</button>
+</div>
+</div>
+
+
+<div class="polling-flex">
+  <div id="pollingResults"></div>
+  <canvas id="partyChart" width="400" height="400"></canvas>
+</div>
+</div>
+<script>
+  const grid = document.getElementById("candidateGrid");
+  const thankYouMsg = document.getElementById("thankYouMsg");
+  const pollingResults = document.getElementById("pollingResults");
+  const chartCanvas = document.getElementById("partyChart");
+  const voterCountDisplay = document.getElementById("voterCountDisplay");
+  const buttonsSection = document.getElementById("buttons");
+const audio = document.getElementById("voteSound");
+
+audio.addEventListener("ended", onBeepComplete);
+
+let candidates = [
+  // Party A
+  { id: 1, name: "Priya Verma", party: "A", image: "Images/1.jpg?text=Priya", votes: 0 },
+  { id: 2, name: "Ravi Deshmukh", party: "A", image: "Images/2.jpg?text=Ravi", votes: 0 },
+  { id: 3, name: "Anita Joshi", party: "A", image: "Images/3.jpg?text=Anita", votes: 0 },
+  { id: 4, name: "Karan Malhotra", party: "A", image: "Images/4.jpg?text=Karan", votes: 0 },
+  { id: 5, name: "Meena Nair", party: "A", image: "Images/5.jpg?text=Meena", votes: 0 },
+  { id: 6, name: "Sachin Pawar", party: "A", image: "Images/6.jpg?text=Sachin", votes: 0 },
+  { id: 7, name: "Nidhi Rane", party: "A", image: "Images/7.jpg?text=Nidhi", votes: 0 },
+  { id: 8, name: "Manoj Bhat", party: "A", image: "Images/8.jpg?text=Manoj", votes: 0 },
+  { id: 9, name: "Sonali Shah", party: "A", image: "Images/9.jpg?text=Sonali", votes: 0 },
+  { id: 10, name: "Amit Kulkarni", party: "A", image: "Images/10.jpg?text=Amit", votes: 0 },
+
+  // Party B
+  { id: 11, name: "Arjun Mehta", party: "B", image: "Images/11.jpg?text=Arjun", votes: 0 },
+  { id: 12, name: "Neha Patil", party: "B", image: "Images/12.jpg?text=Neha", votes: 0 },
+  { id: 13, name: "Farhan Khan", party: "B", image: "Images/13.jpg?text=Farhan", votes: 0 },
+  { id: 14, name: "Sneha Rao", party: "B", image: "Images/14.jpg?text=Sneha", votes: 0 },
+  { id: 15, name: "Rahul Singh", party: "B", image: "Images/15.jpg?text=Rahul", votes: 0 },
+  { id: 16, name: "Tanvi Ghosh", party: "B", image: "Images/16.jpg?text=Tanvi", votes: 0 },
+  { id: 17, name: "Dev Pandey", party: "B", image: "Images/17.jpg?text=Dev", votes: 0 },
+  { id: 18, name: "Isha Jain", party: "B", image: "Images/18.jpg?text=Isha", votes: 0 },
+  { id: 19, name: "Rakesh Shinde", party: "B", image: "Images/19.jpg?text=Rakesh", votes: 0 },
+  { id: 20, name: "Pooja Thakur", party: "B", image: "Images/20.jpg?text=Pooja", votes: 0 }
+
+];
+
+
+
+  const savedVotes = JSON.parse(localStorage.getItem("votes")) || {};
+  let userSelections = JSON.parse(localStorage.getItem("userSelections")) || [];
+  let voterCount = parseInt(localStorage.getItem("voterCount")) || 0;
+  let hasVoted = localStorage.getItem("hasVoted") === "true";
+
+  candidates.forEach(c => c.votes = savedVotes[c.id] || 0);
+
+  function vote(id) {
+    if (userSelections.includes(id)) return;
+
+    //number of user selection for config	
+    if (userSelections.length + 1 >= 5) {
+      thankYouMsg.textContent = "⚠️ You can vote for up to 10 candidates only.";      
+      voterCount += 1;
+      localStorage.setItem("hasVoted", "false");
+      localStorage.setItem("voterCount", voterCount);
+      document.querySelectorAll(".card button").forEach(btn => btn.disabled = true);            
+    }
+
+    const candidate = candidates.find(c => c.id === id);
+    candidate.votes += 1;
+    userSelections.push(id);
+
+    if (!hasVoted) {      
+      
+      localStorage.setItem("hasVoted", "true");
+    }
+
+    const updatedVotes = {};
+    candidates.forEach(c => updatedVotes[c.id] = c.votes);
+    localStorage.setItem("votes", JSON.stringify(updatedVotes));
+    localStorage.setItem("userSelections", JSON.stringify(userSelections));
+     
+    renderGrid();
+    thankYouMsg.textContent = `✅ You have voted for ${userSelections.length} candidate(s).`;
+    voterCountDisplay.textContent = `🧮 Total Voters: ${voterCount}`;
+   if(userSelections.length == 5)
+	{ audio.play();  return }
+   
+   
+     
+  }
+   function showButtons()  {
+
+  const pass = prompt("Enter admin password:");
+  if (pass === "admin") {
+    buttonsSection.style.display = "block";
+    thankYouMsg.textContent = "🔓 Admin access granted.";
+  } else {
+    thankYouMsg.textContent = "❌ Incorrect admin password.";
+  }
+  
+ }
+
+function onBeepComplete() {
+   resetUser();
+   voterCountDisplay.textContent = `🧮 Total Voters: ${voterCount}`;
+}
+  function resetUser() {
+    userSelections = [];
+    localStorage.removeItem("userSelections");
+    localStorage.removeItem("hasVoted");
+    hasVoted = false;
+    renderGrid();
+    document.querySelectorAll(".card button").forEach(btn => btn.disabled = false);
+    thankYouMsg.textContent = "🔄 Ready for the next voter!";
+
+  }
+
+  function resetAllVotes() {
+    candidates.forEach(c => c.votes = 0);
+    localStorage.removeItem("votes");
+    localStorage.removeItem("userSelections");
+    localStorage.removeItem("voterCount");
+    localStorage.removeItem("hasVoted");
+    userSelections = [];
+    voterCount = 0;
+   // hasVoted = false;
+    renderGrid();
+    thankYouMsg.textContent = "🗑️ All votes have been reset.";
+    voterCountDisplay.textContent = "";
+    pollingResults.style.display = "none";
+    chartCanvas.style.display = "none";
+  }
+
+  function showPolling() {
+    let html = "<h2>📊 Polling Results</h2><ul style='list-style:none; padding:0;'>";
+    let partyAVotes = 0;
+    let partyBVotes = 0;
+
+    candidates.forEach(c => {
+      html += `<li><strong>${c.name}</strong> (Party ${c.party}): ${c.votes} votes</li>`;
+      if (c.party === "A") partyAVotes += c.votes;
+      else partyBVotes += c.votes;
+    });
+
+    html += `</ul><hr><p><strong>Party A Total:</strong> ${partyAVotes} votes</p>`;
+    html += `<p><strong>Party B Total:</strong> ${partyBVotes} votes</p>`;
+    html += `<p><strong>Total Voters:</strong> ${voterCount}</p>`;
+    pollingResults.innerHTML = html;
+    pollingResults.style.display = "block";
+
+    chartCanvas.style.display = "block";
+    new Chart(chartCanvas, {
+      type: "pie",
+      data: {
+        labels: ["Party A", "Party B"],
+        datasets: [{
+          data: [partyAVotes, partyBVotes],
+          backgroundColor: ["#4caf50", "#2196f3"]
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { position: "bottom" },
+          title: {
+            display: true,
+            text: "Party Vote Distribution"
+          }
+        }
+      }
+    });
+  }
+
+  function renderGrid() {
+    grid.innerHTML = "";
+    candidates.forEach(candidate => {
+      const disabled = userSelections.includes(candidate.id) || userSelections.length >= 5;
+      const card = document.createElement("div");
+      card.className = "card";
+      card.innerHTML = `
+        <img src="${candidate.image}" alt="${candidate.name}" />
+        <h4>${candidate.name} - ${candidate.party}</h4>        
+        <button ${disabled ? "disabled" : `onclick="vote(${candidate.id})"`}>Vote</button>
+      `;
+      grid.appendChild(card);
+    });
+    voterCountDisplay.textContent = `🧮 Total Voters: ${voterCount}`;
+  }
+
+  renderGrid();
+  if (userSelections.length > 0) {
+    thankYouMsg.textContent = `✅ You have voted for ${userSelections.length} candidate(s).`;
+  }
+  function populatePollingTable() {
+  const tbody = document.querySelector("#pollingTable tbody");
+  tbody.innerHTML = "";
+  candidates.forEach(c => {
+    const row = document.createElement("tr");
+    row.innerHTML = `<td>${c.name}</td><td>${c.party}</td><td>${c.votes}</td>`;
+    tbody.appendChild(row);
+  });
+}
+function exportToExcel() {
+  populatePollingTable(); // Fill the table first
+  const table = document.getElementById("pollingTable");
+  const html = table.outerHTML.replace(/ /g, "%20");
+
+  const a = document.createElement("a");
+  a.href = 'data:application/vnd.ms-excel,' + html;
+  a.download = 'polling_results.xls';
+  a.click();
+}
+
+</script>
+
+<table id="pollingTable" style="display:none;">
+  <thead>
+    <tr><th>Name</th><th>Party</th><th>Votes</th></tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
+
+</body>
+</html>
