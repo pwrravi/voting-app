@@ -276,15 +276,32 @@ function onBeepComplete() {
   if (userSelections.length > 0) {
     thankYouMsg.textContent = `✅ You have voted for ${userSelections.length} candidate(s).`;
   }
-  function populatePollingTable() {
+ function populatePollingTable() {
   const tbody = document.querySelector("#pollingTable tbody");
   tbody.innerHTML = "";
+
+  let partyATotal = 0;
+  let partyBTotal = 0;
+
   candidates.forEach(c => {
     const row = document.createElement("tr");
     row.innerHTML = `<td>${c.name}</td><td>${c.party}</td><td>${c.votes}</td>`;
     tbody.appendChild(row);
+
+    if (c.party === "A") partyATotal += c.votes;
+    else if (c.party === "B") partyBTotal += c.votes;
   });
+
+  // Add summary rows
+  const totalRowA = document.createElement("tr");
+  totalRowA.innerHTML = `<td><strong>Party A Total</strong></td><td></td><td><strong>${partyATotal}</strong></td>`;
+  tbody.appendChild(totalRowA);
+
+  const totalRowB = document.createElement("tr");
+  totalRowB.innerHTML = `<td><strong>Party B Total</strong></td><td></td><td><strong>${partyBTotal}</strong></td>`;
+  tbody.appendChild(totalRowB);
 }
+
 function exportToExcel() {
   populatePollingTable(); // Fill the table first
   const table = document.getElementById("pollingTable");
