@@ -5,6 +5,12 @@
   <audio id="voteSound" src="Images/beep.mp3" preload="auto"></audio>
 
   <script src="Images/chart.js"></script>
+	document.addEventListener("contextmenu", e => e.preventDefault());
+document.addEventListener("keydown", e => {
+  if (e.ctrlKey && (e.key === "u" || e.key === "U" || e.keyCode === 123)) {
+    e.preventDefault();
+  }
+});
   <style>
     body { font-family: Arial; padding: 0px; background: #f4f4f4; }
     h1, h2{ text-align: center; }
